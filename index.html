@@ -1,36 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Model-Viewer AR Video Example</title>
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/latest/model-viewer.min.js"></script>
-  <style>
-    body { margin: 0; }
-    model-viewer {
-      width: 100%;
-      height: 100vh;
-      background-color: #eee;
-    }
-  </style>
+    <meta charset="utf-8">
+    <title>A-Frame Markerless AR Video</title>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script>
+        AFRAME.registerComponent('ar-video', {
+            schema: {
+                src: { type: 'string' },
+                width: { type: 'number', default: 1 },
+                height: { type: 'number', default: 0.5625 }, // Default to 16:9 aspect ratio
+                autoplay: { type: 'boolean', default: true }
+            },
+            init: function () {
+                const el = this.el;
+                const data = this.data;
+
+                this.video = document.createElement('video');
+                this.video.src = data.src;
+                this.video.loop = true;
+                this.video.muted = true; // Important for autoplay in some browsers
+                this.video.playsInline = true;
+
+                if (data.autoplay) {
+                    this.video.addEventListener('loadeddata', () => {
+                        this.video.play();
+                    });
+                }
+
+                const texture = new THREE.VideoTexture(this.video);
+                const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+                const geometry = new THREE.PlaneGeometry(data.width, data.height);
+                this.mesh = new THREE.Mesh(geometry, material);
+
+                el.setObject3D('videoMesh', this.mesh);
+            },
+            play: function () {
+                if (this.data.autoplay && this.video.paused) {
+                    this.video.play();
+                }
+            },
+            pause: function () {
+                if (this.video && !this.video.paused) {
+                    this.video.pause();
+                }
+            },
+            update: function (oldData) {
+                if (this.data.src !== oldData.src) {
+                    this.video.src = this.data.src;
+                    this.video.load(); // Reload video when source changes
+                    if (this.data.autoplay) {
+                        this.video.addEventListener('loadeddata', () => {
+                            this.video.play();
+                        });
+                    }
+                }
+                if (this.data.width !== oldData.width || this.data.height !== oldData.height) {
+                    this.mesh.geometry = new THREE.PlaneGeometry(this.data.width, this.data.height);
+                }
+            }
+        });
+    </script>
 </head>
 <body>
-
-  <model-viewer
-    src="assests/plane.glb"
-    ar
-    ar-modes="scene-viewer quick-look"
-    camera-controls
-    autoplay
-    xr-environment>
-    <video
-      slot="material.0"
-      src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
-      autoplay
-      loop
-      muted
-      playsinline></video>
-  </model-viewer>
-
+    <a-scene arjs="mode: ar; detectionMode: plane; cameraParametersUrl: https://raw.githack.com/AR-js-org/AR.js/master/data/camera_para.dat"
+             renderer="antialias: true; alpha: true">
+        <a-entity id="video-anchor" position="0 0 -1" ar-video="src: https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4; width: 2; height: 1.125"></a-entity>
+        <a-entity camera></a-entity>
+    </a-scene>
 </body>
 </html>

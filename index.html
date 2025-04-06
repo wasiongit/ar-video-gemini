@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model-Viewer AR Video Example</title>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/latest/model-viewer.min.js"></script>
+  <style>
+    body { margin: 0; }
+    model-viewer {
+      width: 100%;
+      height: 100vh;
+      background-color: #eee;
+    }
+  </style>
+</head>
+<body>
+
+  <model-viewer
+    src="assests/plane.glb"
+    ar
+    ar-modes="scene-viewer quick-look"
+    camera-controls
+    autoplay
+    xr-environment>
+    <video
+      slot="material.0"
+      src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
+      autoplay
+      loop
+      muted
+      playsinline></video>
+  </model-viewer>
+
+</body>
+</html>
